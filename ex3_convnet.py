@@ -47,7 +47,7 @@ print(hidden_size)
 # TODO: Q3.a Chose the right data augmentation transforms with the right        #
 # hyper-parameters and put them in the data_aug_transforms variable             #
 #################################################################################
-data_aug_transforms = []
+data_aug_transforms = [transforms.C ]
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -104,54 +104,62 @@ class ConvNet(nn.Module):
         # For Q2.a make use of BatchNorm2d layer from the torch.nn module.              #
         # For Q3.b Use Dropout layer from the torch.nn module.                          #
         #################################################################################
-        layers = []
+        cnn_layers = []
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        hidden_size = [128, 512, 512, 512, 512, 512]
+
         # Convolution 1
         self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_size[0], kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.ReLU()
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        layers.append(self.cnn1)
-        layers.append(self.relu1)
-        layers.append(self.maxpool1)
+        cnn_layers.append(self.cnn1)
+        cnn_layers.append(self.relu1)
+        cnn_layers.append(self.maxpool1)
 
         # Convolution 2
-        self.cnn2 = nn.Conv2d(in_channels=hidden_size[0], out_channels=hidden_size[1], kernel_size=3, stride=1, padding=1)
+        self.cnn2 = nn.Conv2d(in_channels=hidden_size[0], out_channels=hidden_size[1], kernel_size=3, stride=1,
+                              padding=1)
         self.relu2 = nn.ReLU()
         self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        layers.append(self.cnn2)
-        layers.append(self.relu2)
-        layers.append(self.maxpool2)
+        cnn_layers.append(self.cnn2)
+        cnn_layers.append(self.relu2)
+        cnn_layers.append(self.maxpool2)
 
         # Convolution 3
-        self.cnn3 = nn.Conv2d(in_channels=hidden_size[1], out_channels=hidden_size[2], kernel_size=3, stride=1, padding=1)
+        self.cnn3 = nn.Conv2d(in_channels=hidden_size[1], out_channels=hidden_size[2], kernel_size=3, stride=1,
+                              padding=1)
         self.relu3 = nn.ReLU()
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        layers.append(self.cnn3)
-        layers.append(self.relu3)
-        layers.append(self.maxpool3)
+        cnn_layers.append(self.cnn3)
+        cnn_layers.append(self.relu3)
+        cnn_layers.append(self.maxpool3)
 
         # Convolution 4
-        self.cnn4 = nn.Conv2d(in_channels=hidden_size[2], out_channels=hidden_size[3], kernel_size=3, stride=1, padding=1)
+        self.cnn4 = nn.Conv2d(in_channels=hidden_size[2], out_channels=hidden_size[3], kernel_size=3, stride=1,
+                              padding=1)
         self.relu4 = nn.ReLU()
         self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
-        layers.append(self.cnn4)
-        layers.append(self.relu4)
-        layers.append(self.maxpool4)
+        cnn_layers.append(self.cnn4)
+        cnn_layers.append(self.relu4)
+        cnn_layers.append(self.maxpool4)
 
         # Convolution 5
-        self.cnn5 = nn.Conv2d(in_channels=hidden_size[3], out_channels=hidden_size[4], kernel_size=3, stride=1, padding=1)
+        self.cnn5 = nn.Conv2d(in_channels=hidden_size[3], out_channels=hidden_size[4], kernel_size=3, stride=1,
+                              padding=1)
         self.relu5 = nn.ReLU()
         self.maxpool5 = nn.MaxPool2d(kernel_size=2, stride=2)
-        layers.append(self.cnn5)
-        layers.append(self.relu5)
-        layers.append(self.maxpool5)
+        cnn_layers.append(self.cnn5)
+        cnn_layers.append(self.relu5)
+        cnn_layers.append(self.maxpool5)
 
         # self.dropout1 = nn.Dropout2d(0.25)
-        self.fc = nn.Linear(in_features=hidden_size[5] * 1 * 1, out_features=num_classes)
-        layers.append(self.fc)
+        # self.fc = nn.Linear(in_features=512*1*1,out_features=num_classes)
+        # layers.append(self.fc)
 
-        self.layers = nn.Sequential(*layers)
+        self.cnn_layers = nn.Sequential(*cnn_layers)
+        self.linear_layers = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(512, 10)
+        )
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -161,28 +169,8 @@ class ConvNet(nn.Module):
         #################################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        output = self.cnn1(x)
-        output = self.relu1(output)
-        output = self.maxpool1(output)
-
-        output = self.cnn2(output)
-        output = self.relu2(output)
-        output = self.maxpool2(output)
-
-        output = self.cnn3(output)
-        output = self.relu3(output)
-        output = self.maxpool3(output)
-
-        output = self.cnn4(output)
-        output = self.relu4(output)
-        output = self.maxpool4(output)
-
-        output = self.cnn5(output)
-        output = self.relu5(output)
-        output = self.maxpool5(output)
-
-        output = output.view(-1, 512 * 1 * 1)
-        out = self.fc(output)
+        out = self.cnn_layers(x)
+        out = self.linear_layers(out)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return out
