@@ -25,6 +25,8 @@ print('Using device: %s'%device)
 # Hyper-parameters
 #--------------------------------
 input_size = 3
+
+
 num_classes = 10
 hidden_size = [128, 512, 512, 512, 512, 512]
 num_epochs = 20
@@ -104,7 +106,52 @@ class ConvNet(nn.Module):
         #################################################################################
         layers = []
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        hidden_size = [128, 512, 512, 512, 512, 512]
+        # Convolution 1
+        self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_size[0], kernel_size=3, stride=1, padding=1)
+        self.relu1 = nn.ReLU()
+        self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        layers.append(self.cnn1)
+        layers.append(self.relu1)
+        layers.append(self.maxpool1)
 
+        # Convolution 2
+        self.cnn2 = nn.Conv2d(in_channels=hidden_size[0], out_channels=hidden_size[1], kernel_size=3, stride=1, padding=1)
+        self.relu2 = nn.ReLU()
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        layers.append(self.cnn2)
+        layers.append(self.relu2)
+        layers.append(self.maxpool2)
+
+        # Convolution 3
+        self.cnn3 = nn.Conv2d(in_channels=hidden_size[1], out_channels=hidden_size[2], kernel_size=3, stride=1, padding=1)
+        self.relu3 = nn.ReLU()
+        self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+        layers.append(self.cnn3)
+        layers.append(self.relu3)
+        layers.append(self.maxpool3)
+
+        # Convolution 4
+        self.cnn4 = nn.Conv2d(in_channels=hidden_size[2], out_channels=hidden_size[3], kernel_size=3, stride=1, padding=1)
+        self.relu4 = nn.ReLU()
+        self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
+        layers.append(self.cnn4)
+        layers.append(self.relu4)
+        layers.append(self.maxpool4)
+
+        # Convolution 5
+        self.cnn5 = nn.Conv2d(in_channels=hidden_size[3], out_channels=hidden_size[4], kernel_size=3, stride=1, padding=1)
+        self.relu5 = nn.ReLU()
+        self.maxpool5 = nn.MaxPool2d(kernel_size=2, stride=2)
+        layers.append(self.cnn5)
+        layers.append(self.relu5)
+        layers.append(self.maxpool5)
+
+        # self.dropout1 = nn.Dropout2d(0.25)
+        self.fc = nn.Linear(in_features=hidden_size[5] * 1 * 1, out_features=num_classes)
+        layers.append(self.fc)
+
+        self.layers = nn.Sequential(*layers)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -114,6 +161,28 @@ class ConvNet(nn.Module):
         #################################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        output = self.cnn1(x)
+        output = self.relu1(output)
+        output = self.maxpool1(output)
+
+        output = self.cnn2(output)
+        output = self.relu2(output)
+        output = self.maxpool2(output)
+
+        output = self.cnn3(output)
+        output = self.relu3(output)
+        output = self.maxpool3(output)
+
+        output = self.cnn4(output)
+        output = self.relu4(output)
+        output = self.maxpool4(output)
+
+        output = self.cnn5(output)
+        output = self.relu5(output)
+        output = self.maxpool5(output)
+
+        output = output.view(-1, 512 * 1 * 1)
+        out = self.fc(output)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return out
@@ -130,7 +199,11 @@ def PrintModelSize(model, disp=True):
     # training                                                                      #
     #################################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    pass
+
+    # model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    # model_sz = sum([np.prod(p.size()) for p in model_parameters])
+
+    model_sz=sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return model_sz
@@ -139,6 +212,21 @@ def PrintModelSize(model, disp=True):
 # Calculate the model size (Q1.c)
 # visualize the convolution filters of the first convolution layer of the input model
 #-------------------------------------------------
+def imshow_filter(filters,row,col):
+    print('-------------------------------------------------------------')
+    plt.figure()
+    for i in range(len(filters)):
+        # w = np.array([0.299, 0.587, 0.114]) #weight for RGB
+        img = filters[i]
+        img = np.transpose(img, (1, 2, 0))
+        img = img/(img.max()-img.min())
+        # img = np.dot(img,w)
+
+        plt.subplot(row,col,i+1)
+        plt.imshow(img)
+        plt.xticks([])
+        plt.yticks([])
+    plt.show()
 def VisualizeFilter(model):
     #################################################################################
     # TODO: Implement the functiont to visualize the weights in the first conv layer#
@@ -146,7 +234,8 @@ def VisualizeFilter(model):
     # You can use matlplotlib.imshow to visualize an image in python                #
     #################################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    pass
+    filters = model.cnn1.weight.data.cpu().numpy()
+    imshow_filter(filters,8,16)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 #======================================================================================
