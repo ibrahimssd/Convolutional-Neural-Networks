@@ -29,14 +29,14 @@ input_size = 3
 
 num_classes = 10
 hidden_size = [128, 512, 512, 512, 512, 512]
-num_epochs = 20
+num_epochs = 50
 batch_size = 200
 learning_rate = 2e-3
 learning_rate_decay = 0.95
 reg=0.001
 num_training= 49000
 num_validation =1000
-norm_layer = None
+norm_layer = 'BN'
 print(hidden_size)
 
 
@@ -47,7 +47,7 @@ print(hidden_size)
 # TODO: Q3.a Chose the right data augmentation transforms with the right        #
 # hyper-parameters and put them in the data_aug_transforms variable             #
 #################################################################################
-data_aug_transforms = [transforms.C ]
+data_aug_transforms = []
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -109,45 +109,60 @@ class ConvNet(nn.Module):
 
         # Convolution 1
         self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_size[0], kernel_size=3, stride=1, padding=1)
+        self.batchnorm1 = nn.BatchNorm2d(hidden_size[0])
         self.relu1 = nn.ReLU()
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         cnn_layers.append(self.cnn1)
+        if norm_layer:
+          cnn_layers.append(self.batchnorm1)
         cnn_layers.append(self.relu1)
         cnn_layers.append(self.maxpool1)
 
         # Convolution 2
         self.cnn2 = nn.Conv2d(in_channels=hidden_size[0], out_channels=hidden_size[1], kernel_size=3, stride=1,
                               padding=1)
+        self.batchnorm2 = nn.BatchNorm2d(hidden_size[1])
         self.relu2 = nn.ReLU()
         self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
         cnn_layers.append(self.cnn2)
+        if norm_layer:
+          cnn_layers.append(self.batchnorm2)
         cnn_layers.append(self.relu2)
         cnn_layers.append(self.maxpool2)
 
         # Convolution 3
         self.cnn3 = nn.Conv2d(in_channels=hidden_size[1], out_channels=hidden_size[2], kernel_size=3, stride=1,
                               padding=1)
+        self.batchnorm3 = nn.BatchNorm2d(hidden_size[2])
         self.relu3 = nn.ReLU()
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
         cnn_layers.append(self.cnn3)
+        if norm_layer:
+          cnn_layers.append(self.batchnorm3)
         cnn_layers.append(self.relu3)
         cnn_layers.append(self.maxpool3)
 
         # Convolution 4
         self.cnn4 = nn.Conv2d(in_channels=hidden_size[2], out_channels=hidden_size[3], kernel_size=3, stride=1,
                               padding=1)
+        self.batchnorm4 = nn.BatchNorm2d(hidden_size[3])
         self.relu4 = nn.ReLU()
         self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
         cnn_layers.append(self.cnn4)
+        if norm_layer:
+          cnn_layers.append(self.batchnorm4)
         cnn_layers.append(self.relu4)
         cnn_layers.append(self.maxpool4)
 
         # Convolution 5
         self.cnn5 = nn.Conv2d(in_channels=hidden_size[3], out_channels=hidden_size[4], kernel_size=3, stride=1,
                               padding=1)
+        self.batchnorm5 = nn.BatchNorm2d(hidden_size[4])
         self.relu5 = nn.ReLU()
         self.maxpool5 = nn.MaxPool2d(kernel_size=2, stride=2)
         cnn_layers.append(self.cnn5)
+        if norm_layer:
+          cnn_layers.append(self.batchnorm5)
         cnn_layers.append(self.relu5)
         cnn_layers.append(self.maxpool5)
 
@@ -211,7 +226,7 @@ def imshow_filter(filters,row,col):
         # img = np.dot(img,w)
 
         plt.subplot(row,col,i+1)
-        plt.imshow(img)
+        plt.imshow(img.astype(np.uint8))
         plt.xticks([])
         plt.yticks([])
     plt.show()
@@ -299,7 +314,10 @@ for epoch in range(num_epochs):
         #################################################################################
         best_model = None
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        accuracy = 100 * correct / total
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            torch.save(model, "pytorch_model.bin")
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     model.train()
@@ -313,6 +331,10 @@ model.eval()
 #################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+best_model = ConvNet(input_size, hidden_size, num_classes).to(device)
+best_model = torch.load(f"pytorch_model.bin")
+best_model.eval()
+
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 with torch.no_grad():
     correct = 0
@@ -324,15 +346,19 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        
+        best_outputs = model(images)
+        _, best_predicted = torch.max(outputs.data, 1)
+        best_correct += (predicted == labels).sum().item()
         if total == 1000:
             break
 
-    print('Accuracy of the network on the {} test images: {} %'.format(total, 100 * correct / total))
+    print('[Latest Model] Accuracy of the network on the {} test images: {} %'.format(total, 100 * correct / total))
+    print('[Best Model] Accuracy of the network on the {} test images: {} %'.format(total, 100 * best_correct / total))
 
 # Q1.c: Implementing the function to visualize the filters in the first conv layers.
 # Visualize the filters before training
 VisualizeFilter(model)
 # Save the model checkpoint
 torch.save(model.state_dict(), 'model.ckpt')
-
 
