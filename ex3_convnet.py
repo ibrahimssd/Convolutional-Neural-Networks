@@ -115,10 +115,10 @@ class ConvNet(nn.Module):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Convolution 1
-        self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_size[0], kernel_size=3, stride=1, padding=1)
+        self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_layers[0], kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.ReLU()
         self.dorpout1 = nn.Dropout2d(drop_out_value)
-        self.batchnorm1 = nn.BatchNorm2d(hidden_size[0])
+        self.batchnorm1 = nn.BatchNorm2d(hidden_layers[0])
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn1)
@@ -128,11 +128,11 @@ class ConvNet(nn.Module):
         cnn_layers.append(self.maxpool1)
 
         # Convolution 2
-        self.cnn2 = nn.Conv2d(in_channels=hidden_size[0], out_channels=hidden_size[1], kernel_size=3, stride=1,
+        self.cnn2 = nn.Conv2d(in_channels=hidden_layers[0], out_channels=hidden_layers[1], kernel_size=3, stride=1,
                               padding=1)
         self.relu2 = nn.ReLU()
         self.dorpout2 = nn.Dropout2d(drop_out_value)
-        self.batchnorm2 = nn.BatchNorm2d(hidden_size[1])
+        self.batchnorm2 = nn.BatchNorm2d(hidden_layers[1])
         self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn2)
@@ -142,11 +142,11 @@ class ConvNet(nn.Module):
         cnn_layers.append(self.maxpool2)
 
         # Convolution 3
-        self.cnn3 = nn.Conv2d(in_channels=hidden_size[1], out_channels=hidden_size[2], kernel_size=3, stride=1,
+        self.cnn3 = nn.Conv2d(in_channels=hidden_layers[1], out_channels=hidden_layers[2], kernel_size=3, stride=1,
                               padding=1)
         self.relu3 = nn.ReLU()
         self.dorpout3 = nn.Dropout2d(drop_out_value)
-        self.batchnorm3 = nn.BatchNorm2d(hidden_size[2])
+        self.batchnorm3 = nn.BatchNorm2d(hidden_layers[2])
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn3)
@@ -156,11 +156,11 @@ class ConvNet(nn.Module):
         cnn_layers.append(self.maxpool3)
 
         # Convolution 4
-        self.cnn4 = nn.Conv2d(in_channels=hidden_size[2], out_channels=hidden_size[3], kernel_size=3, stride=1,
+        self.cnn4 = nn.Conv2d(in_channels=hidden_layers[2], out_channels=hidden_layers[3], kernel_size=3, stride=1,
                               padding=1)
         self.relu4 = nn.ReLU()
         self.dorpout4 = nn.Dropout2d(drop_out_value)
-        self.batchnorm4 = nn.BatchNorm2d(hidden_size[3])
+        self.batchnorm4 = nn.BatchNorm2d(hidden_layers[3])
         self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn4)
@@ -170,7 +170,7 @@ class ConvNet(nn.Module):
         cnn_layers.append(self.maxpool4)
 
         # Convolution 5
-        self.cnn5 = nn.Conv2d(in_channels=hidden_size[3], out_channels=hidden_size[4], kernel_size=3, stride=1,
+        self.cnn5 = nn.Conv2d(in_channels=hidden_layers[3], out_channels=hidden_layers[4], kernel_size=3, stride=1,
                               padding=1)
         self.relu5 = nn.ReLU()
         self.dorpout5 = nn.Dropout2d(drop_out_value)
@@ -188,7 +188,7 @@ class ConvNet(nn.Module):
         self.linear_layers = nn.Sequential(
             nn.Flatten(),
             # nn.Dropout2d(drop_out_value),
-            nn.Linear(512, 10)
+            nn.Linear(512, num_classes)
         )
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
