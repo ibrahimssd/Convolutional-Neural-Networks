@@ -218,12 +218,13 @@ def PrintModelSize(model, disp=True):
     #################################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    model_sz = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    model_parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
+
     if disp:
-        print(model_sz)
+        print("Total Number of parameters : ", model_parameters)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    return model_sz
+    return model_parameters
 
 
 # -------------------------------------------------
@@ -338,6 +339,7 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         correct = 0
         total = 0
+
         # calculating Training Accuracy
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
