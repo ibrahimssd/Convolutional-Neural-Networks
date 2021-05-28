@@ -32,7 +32,7 @@ learning_rate_decay = 0.99
 reg=0#0.001
 num_training= 49000
 num_validation =1000
-fine_tune = True
+fine_tune = False
 pretrained=True
 
 data_aug_transforms = [transforms.RandomHorizontalFlip(p=0.5)]#, transforms.RandomGrayscale(p=0.05)]
@@ -92,7 +92,38 @@ class VggModel(nn.Module):
         # disable training the feature extraction layers based on the fine_tune flag.   #
         #################################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        self.n_class = n_class
+        self.fine_tune = fine_tune
+        self.pretrained = pretrained
+        self.conv_layers = []
+        self.fc_layers = []
+        
 
+        vgg11 = models.vgg11_bn(pretrained = self.pretrained)
+        convolution_layers = []
+        fullyconnected_layers = []
+        # Convolution Layers for feature extraction from Vgg model
+        for layer in vgg11.features:
+            convolution_layers.append(layer)
+        self.conv_layers = nn.Sequential(*convolution_layers)
+        
+        #Training the feature extraction layer based on fine_tune flag
+        set_parameter_requires_grad(self, fine_tune)
+        # Building customized fully connected layers to get the probablities for 
+        # our ten classes and also for classification       
+        fullyconnected_layers.append( nn.Linear(512, layer_config[0]))
+        fullyconnected_layers.append( nn.BatchNorm1d(layer_config[0]))
+        fullyconnected_layers.append( nn.ReLU())
+        fullyconnected_layers.append( nn.Linear(layer_config[0], layer_config[1]))
+        fullyconnected_layers.append( nn.BatchNorm1d(layer_config[1]))
+        fullyconnected_layers.append( nn.ReLU())
+        fullyconnected_layers.append( nn.Linear(layer_config[1], num_classes))
+
+        self.fc_layers = nn.Sequential(*fullyconnected_layers)
+        
+        #Condition to determine whether to use the pretrained Imagenet weights
+        if(not pretrained):
+            self.apply(weights_init)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -101,7 +132,12 @@ class VggModel(nn.Module):
         # TODO: Implement the forward pass computations                                 #
         #################################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        convolution_layers = self.conv_layers
+        x = convolution_layers(x)
+        fullyconnected_layers = self.fc_layers
+        x = x.view(batch_size, 512)
+        x = fullyconnected_layers(x)
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return out
@@ -120,7 +156,11 @@ print("Params to learn:")
 if fine_tune:
     params_to_update = []
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+    #setting fine_tune = true trains only the new added layers
+    params_to_update = model.fc_layers.parameters()
+    for name,param in model.named_parameters():
+        if param.requires_grad == True:
+            print("\t",name)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 else:
@@ -137,8 +177,12 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(params_to_update, lr=learning_rate, weight_decay=reg)
 
 # Train the model
+best_model_path = './best_model.ckpt'
+best_accuracy= 0
+training_loss = []
 lr = learning_rate
 total_step = len(train_loader)
+
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # Move tensors to the configured device
@@ -157,7 +201,7 @@ for epoch in range(num_epochs):
         if (i+1) % 100 == 0:
             print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-
+        training_loss.append(loss.item())
     # Code to update the lr
     lr *= learning_rate_decay
     update_lr(optimizer, lr)
@@ -179,7 +223,12 @@ for epoch in range(num_epochs):
         #################################################################################
         best_model = None
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        accuracy = 1.0 * correct / total
+        if(accuracy > best_accuracy):
+            best_accuracy = accuracy
+            best_model = model
+            torch.save(model.state_dict(), best_model_path)
+            print("Updated best model")
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 
@@ -190,7 +239,8 @@ for epoch in range(num_epochs):
 # weights from the best model so far and perform testing with this model.       #
 #################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+model.load_state_dict(torch.load(best_model_path))
+model.eval()
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 # Test the model
