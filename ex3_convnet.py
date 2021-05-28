@@ -226,7 +226,7 @@ def imshow_filter(filters,row,col):
         # img = np.dot(img,w)
 
         plt.subplot(row,col,i+1)
-        plt.imshow(img.astype(np.uint8))
+        plt.imshow(img)
         plt.xticks([])
         plt.yticks([])
     plt.show()
@@ -268,11 +268,15 @@ VisualizeFilter(model)
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=reg)
-
+loss_list = []
+accuracy_list = []
+epoch_list = []
 # Train the model
 lr = learning_rate
 total_step = len(train_loader)
+best_accuracy = -np.inf
 for epoch in range(num_epochs):
+    epoch_list.append(epoch)
     for i, (images, labels) in enumerate(train_loader):
         # Move tensors to the configured device
         images = images.to(device)
@@ -282,6 +286,7 @@ for epoch in range(num_epochs):
         outputs = model(images)
 
         loss = criterion(outputs, labels)
+        loss_list.append(loss)
 
         # Backward and optimize
         optimizer.zero_grad()
@@ -318,9 +323,23 @@ for epoch in range(num_epochs):
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             torch.save(model, "pytorch_model.bin")
+        
+        accuracy_list.append(accuracy)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     model.train()
+
+plt.figure()
+plt.subplot(211)
+plt.plot(loss_list)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+
+plt.subplot(212)
+plt.plot(epoch_list, accuracy_list)
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.show()
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
@@ -338,6 +357,7 @@ best_model.eval()
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 with torch.no_grad():
     correct = 0
+    correct2 = 0
     total = 0
     for images, labels in test_loader:
         images = images.to(device)
@@ -346,15 +366,15 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        
-        best_outputs = model(images)
-        _, best_predicted = torch.max(outputs.data, 1)
-        best_correct += (predicted == labels).sum().item()
+
+        outputs2 = best_model(images)
+        _, predicted2 = torch.max(outputs2.data, 1)
+        correct2 += (predicted2 == labels).sum().item()
         if total == 1000:
             break
 
-    print('[Latest Model] Accuracy of the network on the {} test images: {} %'.format(total, 100 * correct / total))
-    print('[Best Model] Accuracy of the network on the {} test images: {} %'.format(total, 100 * best_correct / total))
+    print('Accuracy of the network on the {} test images with last model: {} %'.format(total, 100 * correct / total))
+    print('Accuracy of the network on the {} test images with best model: {} %'.format(total, 100 * correct2 / total))
 
 # Q1.c: Implementing the function to visualize the filters in the first conv layers.
 # Visualize the filters before training
@@ -362,3 +382,4 @@ VisualizeFilter(model)
 # Save the model checkpoint
 torch.save(model.state_dict(), 'model.ckpt')
 
+VisualizeFilter(best_model)
