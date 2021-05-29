@@ -37,7 +37,9 @@ learning_rate_decay = 0.95
 reg = 0.001
 num_training = 49000
 num_validation = 1000
-norm_layer = None
+norm_layer = None #Set to something that evaluates as true to make batch normalization
+drop_out = False #Set to true to enable drop_out
+drop_out_value= 0.5
 print(hidden_size)
 
 # -------------------------------------------------
@@ -102,7 +104,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 # Set norm_layer for different networks whether using batch normalization
 # -------------------------------------------------
 class ConvNet(nn.Module):
-    def __init__(self, input_size, hidden_layers, num_classes, norm_layer=None, drop_out_value=0.5):
+    def __init__(self, input_size, hidden_layers, num_classes, norm_layer=None, drop_out = False, drop_out_value=0.5):
         super(ConvNet, self).__init__()
         #################################################################################
         # TODO: Initialize the modules required to implement the convolutional layer    #
@@ -117,70 +119,80 @@ class ConvNet(nn.Module):
         # Convolution 1
         self.cnn1 = nn.Conv2d(in_channels=input_size, out_channels=hidden_layers[0], kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.ReLU()
-        self.dorpout1 = nn.Dropout2d(drop_out_value)
-        self.batchnorm1 = nn.BatchNorm2d(hidden_layers[0])
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn1)
         cnn_layers.append(self.relu1)
-        cnn_layers.append(self.dorpout1)
-        cnn_layers.append(self.batchnorm1)
+        if drop_out:
+            self.dorpout1 = nn.Dropout2d(drop_out_value)
+            cnn_layers.append(self.dorpout1)
+        if norm_layer:
+            self.batchnorm1 = nn.BatchNorm2d(hidden_layers[0])
+            cnn_layers.append(self.batchnorm1)
         cnn_layers.append(self.maxpool1)
 
         # Convolution 2
         self.cnn2 = nn.Conv2d(in_channels=hidden_layers[0], out_channels=hidden_layers[1], kernel_size=3, stride=1,
                               padding=1)
         self.relu2 = nn.ReLU()
-        self.dorpout2 = nn.Dropout2d(drop_out_value)
-        self.batchnorm2 = nn.BatchNorm2d(hidden_layers[1])
         self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn2)
         cnn_layers.append(self.relu2)
-        cnn_layers.append(self.dorpout2)
-        cnn_layers.append(self.batchnorm2)
+        if drop_out:
+            self.dorpout2 = nn.Dropout2d(drop_out_value)
+            cnn_layers.append(self.dorpout2)
+        if norm_layer:
+            self.batchnorm2 = nn.BatchNorm2d(hidden_layers[1])
+            cnn_layers.append(self.batchnorm2)
         cnn_layers.append(self.maxpool2)
 
         # Convolution 3
         self.cnn3 = nn.Conv2d(in_channels=hidden_layers[1], out_channels=hidden_layers[2], kernel_size=3, stride=1,
                               padding=1)
         self.relu3 = nn.ReLU()
-        self.dorpout3 = nn.Dropout2d(drop_out_value)
-        self.batchnorm3 = nn.BatchNorm2d(hidden_layers[2])
         self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn3)
         cnn_layers.append(self.relu3)
-        cnn_layers.append(self.dorpout3)
-        cnn_layers.append(self.batchnorm3)
+        if drop_out:
+            self.dorpout3 = nn.Dropout2d(drop_out_value)
+            cnn_layers.append(self.dorpout3)
+        if norm_layer:
+            self.batchnorm3 = nn.BatchNorm2d(hidden_layers[2])
+            cnn_layers.append(self.batchnorm3)
         cnn_layers.append(self.maxpool3)
 
         # Convolution 4
         self.cnn4 = nn.Conv2d(in_channels=hidden_layers[2], out_channels=hidden_layers[3], kernel_size=3, stride=1,
                               padding=1)
         self.relu4 = nn.ReLU()
-        self.dorpout4 = nn.Dropout2d(drop_out_value)
-        self.batchnorm4 = nn.BatchNorm2d(hidden_layers[3])
         self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn4)
         cnn_layers.append(self.relu4)
-        cnn_layers.append(self.dorpout4)
-        cnn_layers.append(self.batchnorm4)
+        if drop_out:
+            self.dorpout4 = nn.Dropout2d(drop_out_value)
+            cnn_layers.append(self.dorpout4)
+        if norm_layer:
+            self.batchnorm4 = nn.BatchNorm2d(hidden_layers[3])
+            cnn_layers.append(self.batchnorm4)
         cnn_layers.append(self.maxpool4)
 
         # Convolution 5
         self.cnn5 = nn.Conv2d(in_channels=hidden_layers[3], out_channels=hidden_layers[4], kernel_size=3, stride=1,
                               padding=1)
         self.relu5 = nn.ReLU()
-        self.dorpout5 = nn.Dropout2d(drop_out_value)
-        self.batchnorm5 = nn.BatchNorm2d(hidden_size[4])
         self.maxpool5 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         cnn_layers.append(self.cnn5)
         cnn_layers.append(self.relu5)
-        cnn_layers.append(self.dorpout5)
-        cnn_layers.append(self.batchnorm5)
+        if drop_out:
+            self.dorpout5 = nn.Dropout2d(drop_out_value)
+            cnn_layers.append(self.dorpout5)
+        if norm_layer:
+            self.batchnorm5 = nn.BatchNorm2d(hidden_size[4])
+            cnn_layers.append(self.batchnorm5)
         cnn_layers.append(self.maxpool5)
 
         # fully connected layer
@@ -233,7 +245,7 @@ def PrintModelSize(model, disp=True):
 # -------------------------------------------------
 
 ## plot drop_out values VS Training and validation accuracy
-model_stats = {'train_acc_history': [], 'val_acc_history': []}
+model_stats = {'train_acc_history': [], 'val_acc_history': [], 'loss_history':[]}
 
 
 def plot_train_val_acc(model_stats, drop):
@@ -244,6 +256,21 @@ def plot_train_val_acc(model_stats, drop):
     plt.ylabel('Classification accuracy')
     plt.xlim([0, num_epochs])
     plt.ylim([0.2, 1])
+    plt.legend()
+    plt.show()
+    
+def plot_loss_accuracy_curves(model_stats):
+    plt.figure()
+    plt.subplot(211)
+    plt.plot(model_stats['loss_history'])
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    
+    plt.subplot(212)
+    plt.plot(model_stats['val_acc_history'], label='val')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.xlim([0, num_epochs])
     plt.legend()
     plt.show()
 
@@ -284,7 +311,7 @@ def VisualizeFilter(model):
 # In this question we will implement a convolutional neural networks using the PyTorch
 # library.  Please complete the code for the ConvNet class evaluating the model
 # --------------------------------------------------------------------------------------
-model = ConvNet(input_size, hidden_size, num_classes, norm_layer=norm_layer).to(device)
+model = ConvNet(input_size, hidden_size, num_classes, norm_layer=norm_layer, drop_out=drop_out, drop_out_value=drop_out_value).to(device)
 # Q2.a - Initialize the model with correct batch norm layer
 
 model.apply(weights_init)
@@ -308,10 +335,13 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=
 # Train the model
 train_acc = []
 val_acc = []
+loss_history = []
 model_stats['train_acc_history'] = train_acc
 model_stats['val_acc_history'] = val_acc
+model_stats['loss_history'] = loss_history
 lr = learning_rate
 total_step = len(train_loader)
+best_accuracy = -np.inf
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # Move tensors to the configured device
@@ -322,6 +352,8 @@ for epoch in range(num_epochs):
         outputs = model(images)
 
         loss = criterion(outputs, labels)
+        
+        loss_history.append(loss)
 
         # Backward and optimize
         optimizer.zero_grad()
@@ -365,10 +397,15 @@ for epoch in range(num_epochs):
         #################################################################################
         best_model = None
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        accuracy = 100 * correct / total
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            torch.save(model, "pytorch_model.bin")
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     model.train()
+    
+plot_loss_accuracy_curves(model_stats)
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
@@ -378,11 +415,14 @@ model.eval()
 # best model so far and perform testing with this model.                        #
 #################################################################################
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+best_model = ConvNet(input_size, hidden_size, num_classes).to(device)
+best_model = torch.load(f"pytorch_model.bin")
+best_model.eval()
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 with torch.no_grad():
     correct = 0
     total = 0
+    correct2 = 0
     for images, labels in test_loader:
         images = images.to(device)
         labels = labels.to(device)
@@ -390,10 +430,14 @@ with torch.no_grad():
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        outputs2 = best_model(images)
+        _, predicted2 = torch.max(outputs2.data, 1)
+        correct2 += (predicted2 == labels).sum().item()
         if total == 1000:
             break
 
-    print('Accuracy of the network on the {} test images: {} %'.format(total, 100 * correct / total))
+    print('Accuracy of the network on the {} test images with last model: {} %'.format(total, 100 * correct / total))
+    print('Accuracy of the network on the {} test images with best model: {} %'.format(total, 100 * correct2 / total))
 
 # Q1.c: Implementing the function to visualize the filters in the first conv layers.
 # Visualize the filters before training
